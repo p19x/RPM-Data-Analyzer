@@ -27,7 +27,7 @@ def open_files(file_path):
     print "file opened", files_exist
     return csv, files_exist
 
-def create_volume_time_graph(file_path, date_from = None, date_to = None):
+def create_volume_time_graph(file_path, tank_type_var, date_from = None, date_to = None):
     """Creates a tank volumn in % vs time graph"""
     csv, files_exist = open_files(file_path)
     if date_from != None:
@@ -164,7 +164,7 @@ def make_dataframe(file_path, date_from, date_to):
     print "wheel count calculation successful"
     return filtered_csv, files_exist
 
-def process_csv(filtered_csv):
+def process_csv(filtered_csv, tank_type_var):
     filtered_csv['wheel_count'] = filtered_csv['wheel_count_diff'].cumsum() #find the running total of wheel count 
     filtered_csv['times_activated'] = filtered_csv['wheel_count']/filtered_csv['Wheels TA'] #find the running total of times activated
     filtered_csv['seconds_activated'] = filtered_csv['times_activated'] * filtered_csv['Pump time (sec)'] #find the running total of seconds activated
@@ -174,14 +174,18 @@ def process_csv(filtered_csv):
         tank_level = filtered_csv["Product %"]
     except:
         tank_level = filtered_csv["Raw Level"] #get the tank level in percentages
-    filtered_csv["product_volume"] = tank_level/100*351.1
+
+    if tank_type_var == "std":
+        full_tank = 370.19
+    else: full_tank = 351.12
+    filtered_csv["product_volume"] = tank_level/100*full_tank
     product_volume = filtered_csv["product_volume"]
     
     #filtered_csv = filtered_csv.replace(0, np.nan)
     
     return filtered_csv
 
-def calculate_consumption(date_from, date_to, file_path1, file_path2 = None):
+def calculate_consumption(date_from, date_to, tank_type_var, file_path1, file_path2 = None):
     dataframe1, files_exist = make_dataframe(file_path1, date_from, date_to)
     if file_path2 != None:
         dataframe2, files_exist = make_dataframe(file_path2, date_from, date_to)
@@ -202,7 +206,7 @@ def calculate_consumption(date_from, date_to, file_path1, file_path2 = None):
     
     #df[df['wheel_count_diff'] > 10000]['wheel_count_diff'].diff()
     
-    processed_df = process_csv(df)
+    processed_df = process_csv(df, tank_type_var)
     
     processed_df['Volts'] = pd.to_numeric(processed_df['Volts'])
     

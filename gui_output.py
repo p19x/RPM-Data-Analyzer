@@ -22,12 +22,12 @@ class GUI(tk.Frame):
 
         # Basic information panel
 
-        self.rpm = tk.LabelFrame(self,text= 'Visualize Consumption', width = 540, height = 50)
+        self.rpm = tk.LabelFrame(self,text= 'Visualize Consumption', width = 540, height = 55)
         self.rpm.pack(padx = 5,pady = 5,side = tk.TOP)
         self.rpm.propagate()
         self.rpm.grid_propagate(0)
         
-        self.rpm_input = tk.LabelFrame(self.rpm,text= 'Data Input',width = 240, height = 50)
+        self.rpm_input = tk.LabelFrame(self.rpm,text= 'Data Input',width = 240, height = 55)
         self.rpm_input.pack(padx = 5,pady = 5,side = tk.LEFT)
         self.rpm_input.propagate()
         self.rpm_input.grid_propagate(0)
@@ -37,14 +37,20 @@ class GUI(tk.Frame):
         self.generate_label("Select RPM File(s):",self.rpm_input,1,1)
         self.load_RPM_button = tk.Button(self.rpm_input, text = "...", bd = 2,command = self.get_dir)
         self.load_RPM_button.grid(row = 1, column = 2, sticky= 'W')
+
+        self.tank_type_var = tk.StringVar(self.rpm_input)
+        self.tank_type = tk.OptionMenu(self.rpm_input, self.tank_type_var, "std", "hyb")
+        self.tank_type_var.set("std")
+        self.tank_type.grid(row = 1, column = 3, sticky= 'W', padx = 15)
         
-        self.graph_output = tk.LabelFrame(self.rpm,text= 'Graph Output',width = 250, height = 50)
+
+        self.graph_output = tk.LabelFrame(self.rpm,text= 'Graph Output',width = 250, height = 55)
         self.graph_output.pack(padx = 5,pady = 5,side = tk.RIGHT)
         self.graph_output.propagate()
         self.graph_output.grid_propagate(0)
 
         self.PhaseB = tk.Button(self.graph_output, text = "Time Series Graph",bd =2,
-                                command= lambda: output.create_volume_time_graph(global_variables.file_path1))
+                                command= lambda: output.create_volume_time_graph(global_variables.file_path1, self.tank_type_var.get()))
         self.PhaseB.grid(row = 1,column = 1,sticky= 'W')
 
         self.output = tk.LabelFrame(self,text= 'Calculate Output',width = 530, height = 350)
@@ -99,13 +105,13 @@ class GUI(tk.Frame):
         if global_variables.file_path2:
             try:
                 self.output_button = tk.Button(self.calculate_output, text = "Calculate Output",bd =2,
-                                    command= lambda: output.calculate_consumption(global_variables.date_from, global_variables.date_to, global_variables.file_path1, global_variables.file_path2))
+                                    command= lambda: output.calculate_consumption(global_variables.date_from, global_variables.date_to, self.tank_type_var.get(), global_variables.file_path1, global_variables.file_path2))
             except ValueError:
                 tkMessageBox.showinfo("DateWarning","Please select date from and date to first")
         else:
             try:
                 self.output_button = tk.Button(self.calculate_output, text = "Calculate Output",bd =2,
-                                command= lambda: output.calculate_consumption(global_variables.date_from, global_variables.date_to, global_variables.file_path1))
+                                command= lambda: output.calculate_consumption(global_variables.date_from, global_variables.date_to, self.tank_type_var.get(), global_variables.file_path1))
             except ValueError:
                 tkMessageBox.showinfo("DateWarning","Please select date from and date to first")
 
