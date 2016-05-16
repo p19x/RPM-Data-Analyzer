@@ -3,7 +3,7 @@ import Tkinter as tk
 import tkFileDialog
 import datetime
 import global_variables
-import output
+import output, volume_time
 import ttkcalendar
 import calendar
 import tkMessageBox
@@ -49,8 +49,10 @@ class GUI(tk.Frame):
         self.graph_output.propagate()
         self.graph_output.grid_propagate(0)
 
+
         self.PhaseB = tk.Button(self.graph_output, text = "Time Series Graph",bd =2,
-                                command= lambda: output.create_volume_time_graph(global_variables.file_path1, self.tank_type_var.get()))
+                                command= lambda: volume_time.create_volume_time_graph(self.tank_type_var.get(), global_variables.file_path1, global_variables.file_path2))
+
         self.PhaseB.grid(row = 1,column = 1,sticky= 'W')
 
         self.output = tk.LabelFrame(self,text= 'Calculate Output',width = 530, height = 350)
@@ -100,27 +102,17 @@ class GUI(tk.Frame):
         self.calculate_output.propagate()
         self.calculate_output.grid_propagate(0)
 
-        
-
-        if global_variables.file_path2:
-            try:
-                self.output_button = tk.Button(self.calculate_output, text = "Calculate Output",bd =2,
+        try:
+            self.output_button = tk.Button(self.calculate_output, text = "Calculate Output",bd =2,
                                     command= lambda: output.calculate_consumption(global_variables.date_from, global_variables.date_to, self.tank_type_var.get(), global_variables.file_path1, global_variables.file_path2))
-            except ValueError:
-                tkMessageBox.showinfo("DateWarning","Please select date from and date to first")
-        else:
-            try:
-                self.output_button = tk.Button(self.calculate_output, text = "Calculate Output",bd =2,
-                                command= lambda: output.calculate_consumption(global_variables.date_from, global_variables.date_to, self.tank_type_var.get(), global_variables.file_path1))
-            except ValueError:
-                tkMessageBox.showinfo("DateWarning","Please select date from and date to first")
+        except ValueError:
+            tkMessageBox.showinfo("DateWarning","Please select date from and date to first")
 
             # self.tk.tkMessageBox.showinfo("FileWarning","Please select a file first")
             # return  %H:%M:%S
 
         self.output_button.grid(padx = 3,pady = 3, row = 1, columnspan=2)
         
-
 
     def update_label1(self, x):
         self.l1['text'] = x
@@ -150,10 +142,6 @@ class GUI(tk.Frame):
             global_variables.file_path2 = self.dir[1]
         else:
             tkMessageBox.showinfo("FileWarning","Please select 1 or 2 files")
-        print global_variables.file_path1, global_variables.file_path2
-        #if GlobalGeneralInput.SaveAddress =='':
-        #    GlobalGeneralInput.SaveAddress= self.S_Lolddatabase
-        #self.S_Ldatabase.insert(0,GlobalGeneralInput.SaveAddress)
 
 
 def main(): 

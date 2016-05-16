@@ -1,5 +1,5 @@
-file_path1 = ""
-file_path2 = ""
+file_path1 = None
+file_path2 = None
 
 date_from = ""
 date_to = ""
