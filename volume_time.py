@@ -29,11 +29,11 @@ def open_files(file_path):
 
 def create_volume_time_graph(tank_type_var, file_path, file_path2 = None, date_from = None, date_to = None):
     """Creates a tank volumn in % vs time graph"""
-    csv, files_exist = open_files(file_path)
+    csv1, files_exist = open_files(file_path)
 
     if file_path2 != None:
         csv2, files_exist = open_files(file_path2)
-        frames = [csv, csv2]
+        frames = [csv1, csv2]
         csv = pd.concat(frames)
 
     try:
@@ -58,24 +58,25 @@ def create_volume_time_graph(tank_type_var, file_path, file_path2 = None, date_f
     tank_level_mask = np.isfinite(tank_level)
 
 
-    try:
-        filtered_time = csv["Train end time [local_unit_time]"]
-    except:
-        filtered_time = csv["Report date"]
-    
-    voltage = pd.to_numeric(csv['Volts'])
-
     #find times when the control box is changed
     #counter_change = filtered_time.groupby(filtered_csv["Wheels TA"]).apply(lambda x: np.array(x))
 
-    box_change, settings = get_setting_changes(csv, filtered_time)
+    box_change, settings = get_setting_changes(csv, get_time(csv))
     #print box_change, settings, len(box_change), len(settings)
     #print total_wheels
     fig, ax1 = plt.subplots()
     ax2 = ax1.twinx()
+
+    ax1.plot(get_time(csv)[tank_level_mask], tank_level[tank_level_mask], label = "tank level")
     
-    ax1.plot(filtered_time[tank_level_mask], tank_level[tank_level_mask], label = "tank level")
-    ax2.plot(filtered_time, voltage, color='Red', label = "voltage", alpha=0.5)
+    if file_path2 != None:
+        voltage1 = pd.to_numeric(csv1['Volts'])
+        voltage2 = pd.to_numeric(csv2['Volts'])
+        ax2.plot(get_time(csv1), voltage1, color='Red', label = "voltage1", alpha=0.5)
+        ax2.plot(get_time(csv2), voltage2, color='Darkred', label = "voltage2", alpha=0.5)
+    else:
+        voltage = pd.to_numeric(csv['Volts'])
+        ax2.plot(get_time(csv), voltage, color='Red', label = "voltage", alpha=0.5)
     [ax1.axvline(x=i, ls='--', lw=2.0) for i in box_change]
     [ax1.annotate('{0} x {1}'.format(s[0],s[1]), xy=(box_change[i], 15)) for i, s in enumerate(settings)]
     ax1.legend(loc=0)
@@ -83,8 +84,16 @@ def create_volume_time_graph(tank_type_var, file_path, file_path2 = None, date_f
     plt.title("Tank level and voltage over time")
     ax1.set_ylabel("Tank Level", color='Blue')
     ax2.set_ylabel("Voltage", color='Red')
+    ax2.set_ylim(0,15)
     plt.xlabel("Time")
     plt.show()
+
+def get_time(df):
+    try:
+        filtered_time = df["Train end time [local_unit_time]"]
+    except:
+        filtered_time = df["Report date"]
+    return filtered_time
 
 def get_setting_changes(filtered_csv, filtered_time):
     filtered_csv['value_grp_w'] = (filtered_csv["Wheels TA"].diff(1) != 0).astype('int').cumsum()
